@@ -1,14 +1,19 @@
 <?php
 /**
  * Plugin Name: TikTok Video Downloader
- * Plugin URI: https://your-plugin-website.com
+ * Plugin URI: https://github.com/kuromifanboi/Tiktok-Video-Downloader
  * Description: Allows users to download TikTok videos from your WordPress website and save them on their local computer.
- * Version: 1.0.0
- * Author: Your Name
- * Author URI: https://your-website.com
+ * Version: 2.0.0
+ * Author: Peter Missick
+ * Author URI: https://petermissick.com
  * License: GPL v3 or later
  * License URI: https://www.gnu.org/licenses/gpl-3.0.html
  */
+
+// Prevent direct access to the file
+if (!defined('ABSPATH')) {
+    exit;
+}
 
 // Add a submenu under the "Settings" menu in the WordPress admin dashboard
 function tiktok_video_downloader_submenu() {
@@ -75,7 +80,7 @@ add_shortcode('tiktok_video_downloader', 'tiktok_video_downloader_shortcode');
 function tiktok_video_download_action() {
     if (isset($_POST['action']) && $_POST['action'] === 'tiktok_video_download') {
         if (isset($_POST['video_url'])) {
-            $video_url = $_POST['video_url'];
+            $video_url = esc_url_raw($_POST['video_url']);
 
             // Validate the video URL
             if (!filter_var($video_url, FILTER_VALIDATE_URL)) {
@@ -86,19 +91,27 @@ function tiktok_video_download_action() {
             $filename = 'tiktok_video_' . uniqid() . '.mp4';
 
             // Download the video file using cURL
-            $ch = curl_init($video_url);
-            $fp = fopen($filename, 'wb');
-
-            curl_setopt($ch, CURLOPT_FILE, $fp);
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $video_url);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
             curl_setopt($ch, CURLOPT_HEADER, 0);
+            curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.93 Safari/537.36');
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                'Accept: */*',
+                'Accept-Language: en-US,en;q=0.5',
+                'Connection: keep-alive',
+                'DNT: 1',
+                'Referer: ' . $video_url,
+            ]);
 
-            $result = curl_exec($ch);
-
+            $video_data = curl_exec($ch);
+            $error = curl_error($ch);
             curl_close($ch);
-            fclose($fp);
 
-            if ($result) {
+            if ($video_data) {
+                file_put_contents($filename, $video_data);
+
                 // Set appropriate headers for file download
                 header("Content-Disposition: attachment; filename=" . $filename);
                 header("Content-Type: application/octet-stream");
@@ -113,7 +126,7 @@ function tiktok_video_download_action() {
                 // Stop further execution
                 exit;
             } else {
-                wp_die('Failed to download the video');
+                wp_die('Failed to download the video: ' . $error);
             }
         }
     }
