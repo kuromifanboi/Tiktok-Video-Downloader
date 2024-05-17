@@ -28,8 +28,10 @@ To use the TikTok Video Downloader, simply insert the `[tiktok_video_downloader]
 
 == Changelog ==
 
-= 1.0.0 =
-* Initial release
+= 2.0.0 =
+* Code updated to work with wordpress version 6.5.3
+* Fixed bug where wordpress would sometimes deliver audio instead of video
+* Changed how handling is done when downloading videos
 
 == Upgrade Notice ==
 
