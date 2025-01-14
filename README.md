@@ -1,3 +1,6 @@
+===========NOTICE===========
+Due to the impending shutdown of tiktok in the US, I will be archiving this project. Thank you to the small group of friends I had that supported me on this project
+
 === TikTok Video Downloader ===
 
 Contributors: saukia
